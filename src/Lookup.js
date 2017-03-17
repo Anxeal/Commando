@@ -15,21 +15,15 @@ module.exports = class Lookup {
 		if (!channelData) return;
 		const docs = this.docs[channelData.repo];
 		const repo = this.data.repos[channelData.repo];
-
 		if (!docs) msg.channel.sendMessage('Documentation not yet loaded. Please wait...');
-
 		const classes = this.lowerCaseKeys(docs.classes);
 		const interfaces = this.lowerCaseKeys(docs.interfaces);
 		const typedefs = this.lowerCaseKeys(docs.typedefs);
-
 		let lookup = params.join(' ').split('.');
 		let lookupClass = lookup[0] ? lookup[0].toLowerCase() : undefined;
 		let lookupSub = lookup[1] ? lookup[1].toLowerCase() : undefined;
-
 		if (lookupSub) lookupSub = lookupSub.replace('()', '');
-
 		lookupClass = classes.get(lookupClass) || interfaces.get(lookupClass) || typedefs.get(lookupClass) || null;
-
 		if (lookupClass && lookupSub) {
 			let { props, methods, events } = lookupClass;
 			props = this.lowerCaseKeys(props);
@@ -40,13 +34,12 @@ module.exports = class Lookup {
 		}
 
 		let response;
-
 		if (lookup[0] && lookup[0].toLowerCase() === 'help') {
 			response = this.generateHelp(docs);
 		} else if (lookupClass && lookupSub) {
 			response = this.generateClassSub(lookupClass, lookupSub, repo);
 		} else if (lookupClass && lookupSub === undefined) {
-			if (['DocumentedClass', 'DocumentedInterface'].indexOf(lookupClass.constructor.name) > -1) response = this.generateClass(lookupClass, repo);
+			if (['DocumentedClass', 'DocumentedInterface'].indexOf(lookupClass.constructor.name) > -1) response = this.generateClass(lookupClass, repo); // eslint-disable-line max-len
 			if (lookupClass.constructor.name === 'DocumentedTypeDef') response = this.generateTypeDef(lookupClass, repo);
 		} else {
 			response = this.generateUnknown();
@@ -63,7 +56,7 @@ module.exports = class Lookup {
 
 	generateHelp(docs) {
 		let classes = [...docs.classes.values()].map(docsClass => `\`${docsClass.directData.name}\``).join(', ');
-		let interfaces = [...docs.interfaces.values()].map(docsInterface => `\`${docsInterface.directData.name}\``).join(', ');
+		let interfaces = [...docs.interfaces.values()].map(docsInterface => `\`${docsInterface.directData.name}\``).join(', '); // eslint-disable-line max-len
 		let typedefs = [...docs.typedefs.values()].map(docsTypeDef => `\`${docsTypeDef.directData.name}\``).join(', ');
 
 		if (!classes.length) classes = 'None';
@@ -84,23 +77,25 @@ module.exports = class Lookup {
 
 	generateClassSub(docsClass, docsSub, repo) {
 		let info;
-
 		if (docsSub.constructor.name === 'DocumentedMember') info = this.generateMember(docsSub);
 		if (docsSub.constructor.name === 'DocumentedFunction') info = this.generateFunction(docsSub);
 		if (docsSub.constructor.name === 'DocumentedEvent') info = this.generateEvent(docsSub);
 
 		const className = docsClass.directData.name;
 		const memberName = docsSub.directData.name;
-		const type = ['DocumentedClass', 'DocumentedInterface'].indexOf(docsClass.constructor.name) > -1 ? 'class' : 'typedef';
+		const type = ['DocumentedClass', 'DocumentedInterface'].indexOf(docsClass.constructor.name) > -1
+			? 'class'
+			: 'typedef';
 
-		if (repo.docsURL) info += `\n**Docs:** ${this.generateDocsURL(repo, { type: type, name: className, member: memberName })}`;
-
+		if (repo.docsURL) info += `\n**Docs:** ${this.generateDocsURL(repo, { type: type, name: className, member: memberName })}`; // eslint-disable-line max-len
 		return info;
 	}
 
 	generateClass(docsClass, repo) {
 		let { name, description, classdesc } = docsClass.directData;
-		const construct = docsClass.classConstructor ? docsClass.classConstructor.directData.params.map(param => this.generateParam(param)).join('\n') : 'None';
+		const construct = docsClass.classConstructor
+			? docsClass.classConstructor.directData.params.map(param => this.generateParam(param)).join('\n')
+			: 'None';
 		let properties = [...docsClass.props.values()].map(prop => `\`${prop.directData.name}\``).join(', ');
 		let methods = [...docsClass.methods.values()].map(method => `\`${method.directData.name}()\``).join(', ');
 		let events = [...docsClass.events.values()].map(event => `\`${event.directData.name}\``).join(', ');
@@ -109,10 +104,9 @@ module.exports = class Lookup {
 		if (!properties.length) properties = 'None';
 		if (!methods.length) methods = 'None';
 		if (!events.length) events = 'None';
-
 		if (repo.docsURL) docs = `**Docs:** ${this.generateDocsURL(repo, { type: 'class', name: name })}`;
 
-		description = description.replace(/\r/g, ' ').replace(/<info>([\s\S]+)<\/info>/gi, '\n\nℹ $1 ℹ').replace(/<warn>([\s\S]+)<\/warn>/gi, '\n\n⚠ $1 ⚠');
+		description = description.replace(/\r/g, ' ').replace(/<info>([\s\S]+)<\/info>/gi, '\n\nℹ $1 ℹ').replace(/<warn>([\s\S]+)<\/warn>/gi, '\n\n⚠ $1 ⚠'); // eslint-disable-line max-len
 		return stripIndents`
 			__**\`${name}\`**__
 
@@ -137,10 +131,8 @@ module.exports = class Lookup {
 		let { name, description } = docsTypeDef.directData;
 		const type = this.generateVarType(docsTypeDef.directData.type);
 		let docs;
-
 		if (repo.docsURL) docs = `**Docs:** ${this.generateDocsURL(repo, { type: 'typedef', name: name })}`;
-
-		description = description.replace(/\r/g, ' ').replace(/<info>([\s\S]+)<\/info>/gi, '\n\nℹ $1 ℹ').replace(/<warn>([\s\S]+)<\/warn>/gi, '\n\n⚠ $1 ⚠');
+		description = description.replace(/\r/g, ' ').replace(/<info>([\s\S]+)<\/info>/gi, '\n\nℹ $1 ℹ').replace(/<warn>([\s\S]+)<\/warn>/gi, '\n\n⚠ $1 ⚠'); // eslint-disable-line max-len
 		return stripIndents`
 			__**\`${name}\`**__
 			${description}
@@ -155,16 +147,14 @@ module.exports = class Lookup {
 		let { memberof, name, description, type, returns } = docsMember.directData;
 		let typeName;
 		let types;
-
 		if (type.directData) {
 			typeName = 'Type';
 			types = this.generateVarType(docsMember.directData.type);
 		} else if (returns) {
 			typeName = 'Returns';
-			types = returns.map(returns => `${returns.type.names.map(name => `\`${name}\``)}`).join(', ');
+			types = returns.map(returns => `${returns.type.names.map(name => `\`${name}\``)}`).join(', '); // eslint-disable-line no-shadow, max-len
 		}
-
-		description = description.replace(/\r/g, ' ').replace(/<info>([\s\S]+)<\/info>/gi, '\n\nℹ $1 ℹ').replace(/<warn>([\s\S]+)<\/warn>/gi, '\n\n⚠ $1 ⚠');
+		description = description.replace(/\r/g, ' ').replace(/<info>([\s\S]+)<\/info>/gi, '\n\nℹ $1 ℹ').replace(/<warn>([\s\S]+)<\/warn>/gi, '\n\n⚠ $1 ⚠'); // eslint-disable-line max-len
 		return stripIndents`
 			__**\`${memberof}.${name}\`**__
 
@@ -180,8 +170,7 @@ module.exports = class Lookup {
 		const returns = this.generateVarType(docsFunction.directData.returns);
 		const paramsShort = params.map(param => this.generateParamShort(param)).join(', ');
 		const paramsFull = params.map(param => this.generateParam(param)).join('\n');
-
-		description = description.replace(/\r/g, ' ').replace(/<info>([\s\S]+)<\/info>/gi, '\n\nℹ $1 ℹ').replace(/<warn>([\s\S]+)<\/warn>/gi, '\n\n⚠ $1 ⚠');
+		description = description.replace(/\r/g, ' ').replace(/<info>([\s\S]+)<\/info>/gi, '\n\nℹ $1 ℹ').replace(/<warn>([\s\S]+)<\/warn>/gi, '\n\n⚠ $1 ⚠'); // eslint-disable-line max-len
 		return stripIndents`
 			__**\`${memberof}.${name}(${paramsShort})\`**__
 
@@ -197,8 +186,7 @@ module.exports = class Lookup {
 	generateEvent(docsEvent) {
 		let { memberof, name, description } = docsEvent.directData;
 		const params = docsEvent.directData.params.map(param => this.generateParam(param)).join('\n');
-
-		description = description.replace(/\r/g, ' ').replace(/<info>([\s\S]+)<\/info>/gi, '\n\nℹ $1 ℹ').replace(/<warn>([\s\S]+)<\/warn>/gi, '\n\n⚠ $1 ⚠');
+		description = description.replace(/\r/g, ' ').replace(/<info>([\s\S]+)<\/info>/gi, '\n\nℹ $1 ℹ').replace(/<warn>([\s\S]+)<\/warn>/gi, '\n\n⚠ $1 ⚠'); // eslint-disable-line max-len
 		return stripIndents`
 			__**\`${memberof}.${name}\`**__
 
@@ -211,14 +199,12 @@ module.exports = class Lookup {
 
 	generateParamShort(docsParam) {
 		const { name } = docsParam.directData;
-
 		return name;
 	}
 
 	generateParam(docsParam) {
 		let { name, description, type } = docsParam.directData;
-
-		description = description.replace(/\r/g, ' ').replace(/<info>([\s\S]+)<\/info>/gi, '\n\nℹ $1 ℹ').replace(/<warn>([\s\S]+)<\/warn>/gi, '\n\n⚠ $1 ⚠');
+		description = description.replace(/\r/g, ' ').replace(/<info>([\s\S]+)<\/info>/gi, '\n\nℹ $1 ℹ').replace(/<warn>([\s\S]+)<\/warn>/gi, '\n\n⚠ $1 ⚠'); // eslint-disable-line max-len
 		return stripIndents`
 			**\`${type.directData.names.join(' ')} ${name}\`**
 
@@ -229,11 +215,8 @@ module.exports = class Lookup {
 
 	generateVarType(docsVarType) {
 		if (!docsVarType.directData) return `\`null\``;
-
 		let { names } = docsVarType.directData;
-
 		if (!names) names = docsVarType.names;
-
 		return `${names.map(name => `**\`${name}\`**`).join(', ')}`;
 	}
 
@@ -245,23 +228,18 @@ module.exports = class Lookup {
 		let docsURL = repo.docsURL;
 		const branch = repo.branch;
 		const optionalMemberRegex = /\?scrollTo=\${member}/g;
-
-		docsURL = docsURL.replace('${branch}', branch).replace('${type}', data.type).replace('${name}', data.name);
-
+		docsURL = docsURL.replace('${branch}', branch).replace('${type}', data.type).replace('${name}', data.name); // eslint-disable-line no-template-curly-in-string, max-len
 		if (data.member) {
-			docsURL = docsURL.replace('${member}', data.member);
+			docsURL = docsURL.replace('${member}', data.member); // eslint-disable-line no-template-curly-in-string
 		} else {
 			docsURL = docsURL.replace(optionalMemberRegex, '');
 		}
-
 		return docsURL;
 	}
 
 	lowerCaseKeys(map) {
 		let modifiedMap = new Map();
-
 		for (let [key, value] of map) modifiedMap.set(key.toLowerCase(), value);
-
 		return modifiedMap;
 	}
 };

@@ -109,9 +109,7 @@ client.on('error', winston.error)
 	})
 	.on('message', msg => {
 		if (msg.author.bot) return;
-
 		const prefix = 'docs, ';
-
 		if (!msg.content.toLowerCase().startsWith(prefix)) return;
 
 		const params = msg.content.split(' ').splice(1);
@@ -203,7 +201,6 @@ client.on('error', winston.error)
 			return;
 		}
 		lookup.respond(msg, params);
-		return;
 	})
 	.on('messageReactionAdd', async (messageReaction, user) => {
 		if (messageReaction.emoji.name !== '⭐') return;

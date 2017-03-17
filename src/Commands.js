@@ -11,9 +11,7 @@ module.exports = class Commands {
 	async init(msg, owner, repo, branch, path) {
 		const repoName = `${owner}/${repo}#${branch}`;
 		const sentMessage = await msg.channel.sendMessage('Working...');
-
 		this.data.channels[msg.channel.id] = { repo: repoName };
-
 		if (this.data.repos.hasOwnProperty(repoName)) {
 			return msg.channel.sendMessage(`Successfully initialized for cached repository **${repoName}**.`);
 		}
@@ -25,8 +23,7 @@ module.exports = class Commands {
 			branch: branch,
 			path: path
 		};
-
-		return this.docs.init(repoName).then(() => sentMessage.edit(`Successfully initialized for repository **${repoName}** with path \`${path}\`.`))
+		return this.docs.init(repoName).then(() => sentMessage.edit(`Successfully initialized for repository **${repoName}** with path \`${path}\`.`)) // eslint-disable-line max-len
 			.catch(error => {
 				delete this.data.channels[msg.channel.id];
 				delete this.data.repos[repoName];
@@ -37,23 +34,18 @@ module.exports = class Commands {
 
 	remove(msg, channelID) {
 		delete this.data.channels[channelID];
-
 		msg.channel.sendMessage(`Successfully removed in \`#${msg.channel.name}\`.`);
 	}
 
 	delete(msg, channelID) {
 		const repo = this.data.channels[channelID].repo;
-
-		for (let channel in this.data.channels) if (this.data.channels[channel].repo === repo) delete this.data.channels[channel];
-
+		for (let channel in this.data.channels) if (this.data.channels[channel].repo === repo) delete this.data.channels[channel]; // eslint-disable-line max-len
 		delete this.data.repos[repo];
-
 		msg.channel.sendMessage(`Successfully **deleted** repository.`);
 	}
 
 	docslink(msg, channelID, url) {
 		const repo = this.data.repos[this.data.channels[channelID].repo];
-
 		if (!url || !url.length) {
 			delete repo.docsURL;
 			msg.channel.sendMessage(`Successfully **unlinked** docs.`);
@@ -65,7 +57,7 @@ module.exports = class Commands {
 
 	updateDocs(msg, owner, repo, branch) {
 		const repoName = `${owner}/${repo}#${branch}`;
-		return this.docs.update(repoName).then(() => msg.channel.sendMessage(`Successfully updated docs for repository **${repo}**.`))
+		return this.docs.update(repoName).then(() => msg.channel.sendMessage(`Successfully updated docs for repository **${repo}**.`)) // eslint-disable-line max-len
 			.catch(error => {
 				msg.channel.sendMessage(`Failed to update docs for repository. Error: \`${error}\``);
 			});
@@ -76,14 +68,13 @@ module.exports = class Commands {
 	}
 
 	beautify(msg) {
-		let messages = msg.channel.messages.array().reverse().filter(msg => msg.author.id !== msg.client.user.id);
+		let messages = msg.channel.messages.array().reverse().filter(msg => msg.author.id !== msg.client.user.id); // eslint-disable-line no-shadow, max-len
 		let code;
 		let codeRegex = /```(?:js|json|javascript)?\n?((?:\n|.)+?)\n?```/ig;
 
-		for (let m = 0; m < messages.length; m++) {
-			let msg = messages[m];
+		for (let m = 0; m < messages.length; m++) { // eslint-disable-line id-length
+			let msg = messages[m]; // eslint-disable-line no-shadow
 			let groups = codeRegex.exec(msg.content);
-
 			if (groups && groups[1].length) {
 				code = groups[1];
 				break;
@@ -93,25 +84,18 @@ module.exports = class Commands {
 		if (!code) {
 			return msg.channel.sendMessage('No Javascript codeblock found.');
 		}
-
 		let beautifiedCode = beautify(code, { indent_size: 2, brace_style: 'collapse' }); // eslint-disable-line camelcase
 		beautifiedCode = this.reduceIndentation(beautifiedCode);
-
 		return msg.channel.sendMessage(`${'```js'}\n${beautifiedCode}\n${'```'}`);
 	}
 
 	reduceIndentation(string) {
 		let whitespace = string.match(/^(\s+)/);
-
 		if (!whitespace) return string;
-
 		whitespace = whitespace[0].replace('\n', '');
-
 		let lines = string.split('\n');
 		let reformattedLines = [];
-
 		lines.forEach(line => reformattedLines.push(line.replace(whitespace, '')));
-
 		return reformattedLines.join('\n');
 	}
 };
