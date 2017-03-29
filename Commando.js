@@ -9,8 +9,8 @@ const winston = require('winston');
 
 const Database = require('./structures/PostgreSQL');
 const Redis = require('./structures/Redis');
-const SequelizeProvider = require('./providers/SequelizeProvider');
-const config = require('./settings');
+const SequelizeProvider = require('./providers/Sequelize');
+const { owner, token } = require('./settings');
 
 const data = require('./docsdata.json');
 const Docs = require('./src/Docs.js');
@@ -24,7 +24,7 @@ const commands = new Commands(data, docs);
 const database = new Database();
 const redis = new Redis();
 const client = new CommandoClient({
-	owner: config.owner,
+	owner,
 	commandPrefix: '?',
 	unknownCommandResponse: false,
 	disableEveryone: true
@@ -466,7 +466,7 @@ function save() {
 
 setInterval(save, 60 * 1000);
 
-client.login(config.token);
+client.login(token);
 
 process.on('unhandledRejection', err => {
 	console.error(`Uncaught Promise Error: \n${err.stack}`); // eslint-disable-line no-console
