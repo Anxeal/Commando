@@ -202,6 +202,9 @@ client.on('error', winston.error)
 		lookup.respond(msg, params);
 	})
 	.on('messageReactionAdd', async (reaction, user) => {
+		const blacklist = client.provider.get('global', 'userBlacklist', []);
+		if (blacklist.includes(user.id)) return;
+
 		if (reaction.emoji.name !== '⭐') return;
 		const { message } = reaction;
 		const starboard = message.guild.channels.find('name', 'starboard');
