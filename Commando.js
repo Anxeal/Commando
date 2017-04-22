@@ -53,7 +53,8 @@ client.on('error', winston.error)
 	.once('ready', () => Currency.leaderboard())
 	.on('ready', () => {
 		winston.info(oneLine`
-			Client ready... Logged in as ${client.user.username}#${client.user.discriminator} (${client.user.id})
+			Client ready...
+			Logged in as ${client.user.tag} (${client.user.id})
 		`);
 	})
 	.on('disconnect', () => winston.warn('Disconnected!'))
@@ -62,7 +63,7 @@ client.on('error', winston.error)
 		winston.info(oneLine`${msg.author.tag} (${msg.author.id})
 			> ${msg.guild ? `${msg.guild.name} (${msg.guild.id})` : 'DM'}
 			>> ${cmd.groupID}:${cmd.memberName}
-			${Object.values(args)[0] !== '' || [] ? `>>> ${Object.values(args)}` : ''}
+			${Object.values(args)[0] !== '' || !Object.values(args).length ? `>>> ${Object.values(args)}` : ''}
 		`);
 	})
 	.on('message', async message => {
@@ -212,10 +213,10 @@ client.on('error', winston.error)
 		const isAuthor = await Starboard.isAuthor(message.id, user.id);
 		if (isAuthor || message.author.id === user.id) return message.channel.send(`${user}, you can't star your own messages.`); // eslint-disable-line consistent-return, max-len
 		const hasStarred = await Starboard.hasStarred(message.id, user.id);
-		if (hasStarred) return; // eslint-disable-line consistent-return, max-len
+		if (hasStarred) return; // eslint-disable-line consistent-return
 		const isStarred = await Starboard.isStarred(message.id);
 		if (isStarred) return Starboard.addStar(message, starboard, user.id); // eslint-disable-line consistent-return
-		Starboard.createStar(message, starboard, user.id);
+		else Starboard.createStar(message, starboard, user.id);
 	})
 	.on('messageReactionRemove', async (reaction, user) => {
 		if (reaction.emoji.name !== '⭐') return;
@@ -223,8 +224,8 @@ client.on('error', winston.error)
 		const starboard = message.guild.channels.find('name', 'starboard');
 		if (!starboard) return message.channel.send(`${user}, you can't unstar things without a #starboard...`); // eslint-disable-line consistent-return, max-len
 		const hasStarred = await Starboard.hasStarred(message.id, user.id);
-		if (!hasStarred) return; // eslint-disable-line consistent-return, max-len
-		Starboard.removeStar(message, starboard, user.id);
+		if (!hasStarred) return undefined; // eslint-disable-line consistent-return
+		else Starboard.removeStar(message, starboard, user.id);
 	})
 	.on('unknownCommand', msg => {
 		if (msg.channel.type === 'dm') return;
